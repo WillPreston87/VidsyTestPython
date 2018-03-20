@@ -1,108 +1,113 @@
 import unittest
-import logging
-from Locators import *
+from Locators import * # Todo later
+import time
 from Credentials import *
 from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
+
+driver = webdriver.Chrome()
 
 # Functions
 
-def CheckPage(Page):
+def CheckPage(self, Page):
     # This is a function to detect which page to check is correct
     print("Checking page: '{}'...".format(Page))
     if Page == "Log In":
-        CheckLogInPage()
+        CheckLogInPage(self)
     elif Page == "Brand Select":
-        CheckBrandSelectPage()
+        CheckBrandSelectPage(self)
     elif Page == "Brief":
-        CheckBriefPage()
+        CheckBriefPage(self)
 
-def CheckLogInPage():
+def CheckLogInPage(self):
     # This is a function to check that the Log In page appears correctly
     try:
-        validatePresent(LogInPage.EMAIL_FORM)
-        validatePresent(LogInPage.PASSWORD_FORM)
-        validatePresent(LogInPage.LOG_IN_BUTTON)
-        validatePresent(LogInPage.LOGO)
+        self.driver.find_element_by_class_name("avatar__thumbnail")
+        self.driver.find_element_by_name("email")
+        self.driver.find_element_by_name("password")
         return True
     except:
-        logging.ERROR("Log In Page does not appear correctly")
+        print("Log In Page does not appear correctly")
         return False
 
-def CheckBrandSelectPage():
+def CheckBrandSelectPage(self):
     # This is a function to check that the Brand Select page appears correctly
     try:
-        validatePresent(BrandSelectPage.CLOSE_BUTTON)
-        validatePresent(BrandSelectPage.BRAND_BUTTON)
+        self.driver.find_element_by_class_name("brand-selector__close-button")
+        self.driver.find_element_by_class_name("brand-card")
     except:
-        logging.ERROR("Brand Select Page does not appear correctly")
+        print("Brand Select Page does not appear correctly")
 
 
-def  CheckBriefPage():
+def  CheckBriefPage(self):
     # This is a function to check that the Brief page appears correctly
     try:
-        validatePresent(BriefPage.VIDSY_LOGO_BUTTON)
-        validatePresent(BriefPage.ACCOUNT_BUTTON)
-        validatePresent(BriefPage.LOG_OUT_BUTTON)
-        validatePresent(BriefPage.CREATE_BRIEF_BUTTON)
-        validatePresent(BriefPage.CREATE_BRIEF_CARD)
+        self.driver.find_element_by_class_name("avatar__thumbnail")
+        self.driver.find_element_by_partial_link_text("/settings")
+        self.driver.find_element_by_xpath("//button[contains(.,'Log out']")
+        self.driver.find_element_by_class_name("sub-navigation__button ui-link is-interactive")
+        self.driver.find_element_by_class_name("create-campaign-card")
     except:
-        logging.ERROR("Brief Page does not appear correctly")
+        print("Brief Page does not appear correctly")
 
-def LogInAccount(Username, Password):
+def LogInAccount(self, Username, Password):
     # This is a function to attempt a log in
-    CheckPage("Log In")
-    logging.INFO("Attempting to log into" + Username + " account with " + Password + " password...")
+    CheckPage(self, "Log In")
+    EMAIL_FORM = self.driver.find_element_by_name("email")
+    PASSWORD_FORM = self.driver.find_element_by_name("password")
+    print("Attempting to log into {} account with {} password...".format(Username, Password))
     if Username == "Registered":
-        driver.findElement(By.name("email")).sendKeys(login_creds["username"])
+        EMAIL_FORM.send_keys(login_creds["username"])
     elif Username == "Unregistered":
-        driver.findElement(By.name("email")).sendKeys(login_creds["wrong_username"])
+        EMAIL_FORM.send_keys(login_creds["wrong_username"])
     elif Username == "Invalid":
-        driver.findElement(By.name("email")).sendKeys(login_creds["invalid_username"])
+        EMAIL_FORM.send_keys(login_creds["invalid_username"])
     if Password == "Correct":
-        driver.findElement(By.name("password")).sendKeys(login_creds["password"])
+        PASSWORD_FORM.send_keys(login_creds["password"])
     elif Password == "Incorrect":
-        driver.findElement(By.name("password")).sendKeys(login_creds["wrong_password"])
-        click(LogInPage.LOG_IN_BUTTON)
-    if CheckLoggedIn():
-        logging.INFO("Successfully logged in with account")
+        PASSWORD_FORM.send_keys(login_creds["wrong_password"])
+    LOG_IN_BUTTON = self.driver.find_element_by_class_name("login__button")
+    LOG_IN_BUTTON.click()
+    time.sleep(3)
+    if CheckLoggedIn(self):
+        print("Successfully logged in with account")
         return True
     else:
-        logging.ERROR("Log in failed")
+        print("Log in failed")
         return False
 
-def SelectBrand(Brand):
+def SelectBrand(self, Brand):
     # This is a function to select a brand and check that is selected correctly
-    CheckPage("Brand Select")
-    logging.INFO("Selecting brand: {}".format(Brand))
-    driver.findElement(By.xpath("//button[@class='brand-card' and contains(.,'{}')]".format(Brand))).click()
-    brandname = getText.BriefPage.BRAND_NAME
-    if Brand == getText.BriefPage.BRAND_NAME:
-        logging.INFO(Brand + "selected successfully")
+    CheckPage(self, "Brand Select")
+    print("Selecting brand: {}".format(Brand))
+    self.driver.find_element_by_xpath("//button[@class='brand-card' and contains(.,'{}')]".format(Brand)).click()
+    BRAND_NAME = self.driver.find_element_by_class_name("navigation__current-info")
+    brandname = BRAND_NAME.text
+    if Brand == brandname:
+        print("{} selected successfully".format(Brand))
     else:
-        logging.ERROR("Wrong brand selected. {} selected instead of {}".format(brandname, Brand))
+        print("Wrong brand selected. {} selected instead of {}".format(brandname, Brand))
 
-def CheckLoggedIn():
+def CheckLoggedIn(self):
     # This is a function to check that a log in attempt as been successful
     try:
-        CheckLogInPage()
+        CheckLogInPage(self)
         return False
     except:
         return True
 
-def CountBriefs():
+def CountBriefs(self):
     # This is a function that counts the amount of briefs on the brief page
-    driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS)
-    List<WebElement> Briefs = driver.findElements(By.className("brief-card"))
+    time.sleep(5)
+    Briefs = self.driver.find_elements_by_class_name("brief-card")
     return len(Briefs)
 
-def CheckBriefs():
+def CheckBriefs(self):
     # This is a function that prints back the text in the briefs as a way of verifying they exist
-    BriefCount = CountBriefs()
-    logging.INFO("Number of Briefs: {}".format(BriefCount))
+    BriefCount = CountBriefs(self)
+    print("Number of Briefs: {}".format(BriefCount))
     if BriefCount != 0:
-        BriefText = getText(By.className("container-fluid"))
-        logging.INFO(BriefText)
+        BriefText = self.driver.find_element_by_class_name("container-fluid").text
+        print(BriefText)
         return True
     else:
         return False
@@ -114,7 +119,7 @@ class VidsyTest(unittest.TestCase):
         self.driver.get("https://app.staging.vidsy.co/login")
 
     def tearDown(self):
-        self.driver.quit()
+        self.driver.close()
 
     def test_1_Log_Into_Vidsy_Brand(self):
         # Scenario: This test is to see if i can log into the Vidsy platform with valid user credentials and select the Vidsy brand
@@ -123,13 +128,13 @@ class VidsyTest(unittest.TestCase):
         # AND I select Vidsy as my chosen brand
         # THEN the brief page for Vidsy is displayed correctly
         # AND a list of briefs are displayed
-        logging.INFO("********** RUNNING TEST 1: LogIntoVidsyBrand **********")
-        LogInAccount("Registered", "Correct")
-        SelectBrand("Vidsy")
-        if CheckBriefs():
-            logging.INFO("********** TEST 1 PASSED: LogIntoVidsyBrand **********")
+        print("********** RUNNING TEST 1: LogIntoVidsyBrand **********")
+        LogInAccount(self, "Registered", "Correct")
+        SelectBrand(self, "Vidsy")
+        if CheckBriefs(self):
+            print("********** TEST 1 PASSED: LogIntoVidsyBrand **********")
         else:
-            logging.ERROR("********** TEST 1 FAILED: LogIntoVidsyBrand **********")
+            print("********** TEST 1 FAILED: LogIntoVidsyBrand **********")
 
     def Test_2_Log_Into_Listerine_Brand(self):
         # Scenario: This test is to see if i can log into the Vidsy platform with valid user credentials and select the Listerine brand
@@ -138,24 +143,24 @@ class VidsyTest(unittest.TestCase):
         # AND I select Listerine as my chosen brand
         # THEN the brief page for Listerine is displayed correctly
         # AND a list of briefs are displayed
-        logging.INFO("********** RUNNING TEST 2: LogIntoListerineBrand **********")
-        LogInAccount("Registered", "Correct")
-        SelectBrand("Listerine")
-        if CheckBriefs():
-            logging.INFO("********** TEST 2 PASSED: LogIntoListerineBrand **********")
+        print("********** RUNNING TEST 2: LogIntoListerineBrand **********")
+        LogInAccount(self, "Registered", "Correct")
+        SelectBrand(self, "Listerine")
+        if CheckBriefs(self):
+            print("********** TEST 2 PASSED: LogIntoListerineBrand **********")
         else:
-            logging.ERROR("********** TEST 2 FAILED: LogIntoListerineBrand **********")
+            print("********** TEST 2 FAILED: LogIntoListerineBrand **********")
 
     def Test_3_Unable_To_Login_With_Unregistered_Email(self):
         # Scenario: This test is to see that I am unable to log into Vidsy with an unregistered email
         # GIVEN I don't have a registered account on the Vidsy platform
         # WHEN I enter unregistered user credentials on the log in page
         # THEN I am unable to log in
-        logging.INFO("********** RUNNING TEST 3: UnableToLoginWithUnregisteredEmail **********")
-        if LogInAccount("Unregistered", "Correct"):
-            logging.ERROR("********** TEST FAILED: UnableToLoginWithInvalidEmail **********")
+        print("********** RUNNING TEST 3: UnableToLoginWithUnregisteredEmail **********")
+        if LogInAccount(self,"Unregistered", "Correct"):
+            print("********** TEST FAILED: UnableToLoginWithInvalidEmail **********")
         else:
-            logging.INFO("********** TEST 3 PASSED: UnableToLoginWithUnregisteredEmail **********")
+            print("********** TEST 3 PASSED: UnableToLoginWithUnregisteredEmail **********")
 
     def Test_4_Unable_To_Login_With_Incorrect_Password(self):
         # Scenario: This test is to see that I am unable to log into Vidsy with an invalid email
@@ -163,24 +168,41 @@ class VidsyTest(unittest.TestCase):
         # WHEN I enter a registered email on the log in page
         # AND I enter the incorrect password for that registered email
         # THEN I am unable to log in
-        logging.INFO("********** RUNNING TEST 4: UnableToLoginWithUnregisteredEmail **********")
-        if LogInAccount("Registered", "Incorrect"):
-            logging.ERROR("********** TEST 4 FAILED: UnableToLoginWithInvalidEmail **********")
+        print("********** RUNNING TEST 4: UnableToLoginWithUnregisteredEmail **********")
+        if LogInAccount(self, "Registered", "Incorrect"):
+            print("********** TEST 4 FAILED: UnableToLoginWithInvalidEmail **********")
         else:
-            logging.INFO("********** TEST 4 PASSED: UnableToLoginWithUnregisteredEmail **********")
+            print("********** TEST 4 PASSED: UnableToLoginWithUnregisteredEmail **********")
 
-    def Test5UnableToLoginWithInvalid(self):
+    def Test_5_Unable_To_Login_With_Invalid_Email(self):
         # Scenario: This test is to see that I am unable to log into Vidsy with an unregistered email
         # GIVEN I don't have a registered account on the Vidsy platform
         # WHEN I enter an invalid email on the log in page
         # AND a valid password
         # THEN I am unable to log in
         # AND a message appears saying the email is invalid
-        logging.INFO("********** RUNNING TEST 5: UnableToLoginWithUnregisteredEmail **********")
-        if LogInAccount("Invalid", "Incorrect"):
-            logging.ERROR("********** TEST 5 FAILED: UnableToLoginWithInvalidEmail **********")
+        print("********** RUNNING TEST 5: UnableToLoginWithUnregisteredEmail **********")
+        if LogInAccount(self, "Invalid", "Incorrect"):
+            print("********** TEST 5 FAILED: UnableToLoginWithInvalidEmail **********")
         else:
-            logging.INFO("********** TEST 5 PASSED: UnableToLoginWithUnregisteredEmail **********")
+            print("********** TEST 5 PASSED: UnableToLoginWithUnregisteredEmail **********")
 
 if __name__ == "__main__":
-    unittest.main()
+    test_loader = unittest.TestLoader()
+
+    test_names = test_loader.getTestCaseNames(VidsyTest)
+    # ****************************************************
+    # Enter test name below to run
+    test_names = ["test_1_Log_Into_Vidsy_Brand"]
+
+    # test_names = [
+    # test_1_Log_Into_Vidsy_Brand
+    # Test_2_Log_Into_Listerine_Brand
+    # Test_3_Unable_To_Login_With_Unregistered_Email
+    # Test_4_Unable_To_Login_With_Incorrect_Password
+    # Test_5_Unable_To_Login_With_Invalid_Email
+    suite = unittest.TestSuite()
+    for test_name in test_names:
+        suite.addTest(VidsyTest(test_name))
+
+    result = unittest.TextTestRunner().run(suite)
