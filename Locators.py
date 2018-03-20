@@ -1,4 +1,6 @@
-from selenium import webdriver
+# Having issues calling the locators from another Python file for now. Have moved these to the main test until this can be solved
+
+'''from selenium import webdriver
 driver = webdriver
 
 class LoginPage:
@@ -21,5 +23,4 @@ class BriefPage:
 
 class BrandSelectPage:
     CLOSE_BUTTON = By.className("brand-selector__close-button")
-    BRAND_BUTTON = By.className("brand-card")
-
+    BRAND_BUTTON = By.className("brand-card")'''
